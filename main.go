@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 )
 
 const usage = `vmemo — tidy and analyze voice-to-text transcripts using local LLMs
@@ -67,6 +68,8 @@ func main() {
 		cmdWatch()
 	case "add":
 		cmdAdd()
+	case "ask":
+		cmdAsk()
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n\n", cmd)
 		fmt.Print(usage)
@@ -97,4 +100,22 @@ func cmdWatch() {
 func cmdAdd() {
 	fmt.Printf("add  models=%s  inbox=%s  out=%s  sep=%s\n", *flagModels, *flagInbox, *flagOut, *flagSep)
 	fmt.Println("(not yet implemented — Stage 6)")
+}
+
+// temporary command to verify Ollama round-trip (Stage 1)
+func cmdAsk() {
+	args := flag.Args()
+	if len(args) == 0 {
+		fmt.Fprintln(os.Stderr, "usage: vmemo ask \"your question\"")
+		os.Exit(1)
+	}
+	question := strings.Join(args, " ")
+	fmt.Printf("asking %s: %s\n", *flagModels, question)
+
+	reply, err := Chat(*flagModels, "You are a helpful assistant. Be concise.", question)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println(reply)
 }
