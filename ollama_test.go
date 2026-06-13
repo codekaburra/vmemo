@@ -11,11 +11,18 @@ import (
 func TestChatSendsCorrectRequest(t *testing.T) {
 	var got chatRequest
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, _ := io.ReadAll(r.Body)
-		json.Unmarshal(body, &got)
-		json.NewEncoder(w).Encode(chatResponse{
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("read body: %v", err)
+		}
+		if err := json.Unmarshal(body, &got); err != nil {
+			t.Errorf("unmarshal request: %v", err)
+		}
+		if err := json.NewEncoder(w).Encode(chatResponse{
 			Message: chatMessage{Role: "assistant", Content: "test reply"},
-		})
+		}); err != nil {
+			t.Errorf("encode response: %v", err)
+		}
 	}))
 	defer srv.Close()
 

@@ -10,7 +10,7 @@ test:
 	go test ./...
 
 preflight:
-	go test -v -run TestOllama -run TestRequired ./...
+	OLLAMA_PREFLIGHT=1 go test -v -run 'TestOllama|TestRequired' ./...
 
 smoke: build
 	@echo "=== smoke: help ==="
@@ -20,5 +20,5 @@ smoke: build
 	@echo "=== smoke: ask no args ==="
 	./vmemo ask 2>&1 | grep -q 'usage:' && echo "PASS" || echo "FAIL"
 	@echo "=== smoke: ask round-trip (needs Ollama) ==="
-	./vmemo ask "Reply with only the word OK" | grep -qi 'ok' && echo "PASS" || echo "FAIL"
+	./vmemo ask "Reply with only the word OK" | grep -qiw 'ok' && echo "PASS" || echo "FAIL"
 	@echo "=== all smoke tests done ==="

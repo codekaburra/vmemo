@@ -4,12 +4,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 )
 
 var requiredModels = []string{"mistral:7b", "phi4"}
 
+// preflight tests check the local environment (Ollama running, models
+// installed) rather than code. They are gated behind OLLAMA_PREFLIGHT so a
+// plain `go test ./...` stays hermetic; `make preflight` sets the env var.
+func requirePreflight(t *testing.T) {
+	if os.Getenv("OLLAMA_PREFLIGHT") == "" {
+		t.Skip("set OLLAMA_PREFLIGHT=1 to run preflight checks")
+	}
+}
+
 func TestOllamaRunning(t *testing.T) {
+	requirePreflight(t)
 	resp, err := http.Get("http://localhost:11434/api/tags")
 	if err != nil {
 		t.Fatalf("Ollama not reachable at localhost:11434: %v", err)
@@ -18,9 +29,10 @@ func TestOllamaRunning(t *testing.T) {
 }
 
 func TestRequiredModelsInstalled(t *testing.T) {
+	requirePreflight(t)
 	resp, err := http.Get("http://localhost:11434/api/tags")
 	if err != nil {
-		t.Skipf("Ollama not reachable, skipping: %v", err)
+		t.Fatalf("Ollama not reachable at localhost:11434: %v", err)
 	}
 	defer resp.Body.Close()
 
