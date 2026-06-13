@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-const ollamaURL = "http://localhost:11434/api/chat"
+var ollamaURL = "http://localhost:11434/api/chat"
 
 type chatMessage struct {
 	Role    string `json:"role"`
