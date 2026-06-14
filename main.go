@@ -77,9 +77,23 @@ func main() {
 	}
 }
 
+func parseModels(s string) []string {
+	var out []string
+	for _, m := range strings.Split(s, ",") {
+		m = strings.TrimSpace(m)
+		if m != "" {
+			out = append(out, m)
+		}
+	}
+	return out
+}
+
 func cmdTidy() {
-	fmt.Printf("tidy  models=%s  inbox=%s  out=%s\n", *flagModels, *flagInbox, *flagOut)
-	fmt.Println("(not yet implemented — Stage 2)")
+	models := parseModels(*flagModels)
+	if err := tidy(*flagInbox, *flagOut, models); err != nil {
+		fmt.Fprintf(os.Stderr, "tidy: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 func cmdAnalyze() {
