@@ -1,4 +1,4 @@
-# vmemo
+# vtidy
 
 A local CLI tool that takes voice-to-text transcripts and uses **local LLMs via [Ollama](https://ollama.com)** to tidy and analyze them. Runs entirely on-device — no cloud, no API keys.
 
@@ -23,11 +23,11 @@ For each transcript it produces up to four output files:
 ## Commands
 
 ```
-vmemo tidy       # tidy stage only
-vmemo analyze    # analysis stage only (skips if clean file missing)
-vmemo run        # full pipeline: tidy → analyze
-vmemo watch      # live monitor — drop a file, output appears automatically
-vmemo add        # ingest from clipboard (pbpaste) or inbox/_blob.txt
+vtidy tidy       # tidy stage only
+vtidy analyze    # analysis stage only (skips if clean file missing)
+vtidy run        # full pipeline: tidy → analyze
+vtidy watch      # live monitor — drop a file, output appears automatically
+vtidy add        # ingest from clipboard (pbpaste) or inbox/_blob.txt
 ```
 
 Common flags: `--models <list>`, `--inbox <path>`, `--out <path>`, `--sweep <duration>`.
@@ -35,7 +35,7 @@ Common flags: `--models <list>`, `--inbox <path>`, `--out <path>`, `--sweep <dur
 ## Input
 
 - **Text files** — drop `.txt` files into `inbox/` anytime.
-- **Clipboard / blob** — run `vmemo add` to pull from `pbpaste` or split a multi-entry `inbox/_blob.txt` on `---` lines.
+- **Clipboard / blob** — run `vtidy add` to pull from `pbpaste` or split a multi-entry `inbox/_blob.txt` on `---` lines.
 
 ## Requirements
 

@@ -21,7 +21,7 @@ func writeAtomic(path, content string) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
 	}
-	tmp, err := os.CreateTemp(dir, ".vmemo-*")
+	tmp, err := os.CreateTemp(dir, ".vtidy-*")
 	if err != nil {
 		return err
 	}

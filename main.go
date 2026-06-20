@@ -7,10 +7,10 @@ import (
 	"strings"
 )
 
-const usage = `vmemo — tidy and analyze voice-to-text transcripts using local LLMs
+const usage = `vtidy — tidy and analyze voice-to-text transcripts using local LLMs
 
 Usage:
-  vmemo <command> [flags]
+  vtidy <command> [flags]
 
 Commands:
   tidy      Clean up transcripts  → <id>.clean_<model>.md
@@ -27,10 +27,10 @@ Flags (shared across commands):
   --sep      Blob separator string       (default "---")
 
 Examples:
-  vmemo run
-  vmemo tidy --models phi4
-  vmemo watch
-  vmemo add
+  vtidy run
+  vtidy tidy --models phi4
+  vtidy watch
+  vtidy add
 `
 
 // shared flags
@@ -120,7 +120,7 @@ func cmdAdd() {
 func cmdAsk() {
 	args := flag.Args()
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: vmemo ask \"your question\"")
+		fmt.Fprintln(os.Stderr, "usage: vtidy ask \"your question\"")
 		os.Exit(1)
 	}
 	question := strings.Join(args, " ")

@@ -1,11 +1,11 @@
-# vmemo — Project Plan & Requirements
+# vtidy — Project Plan & Requirements
 
 > Local tool that takes voice→text transcripts and uses **local LLMs (Ollama)** to
 > **tidy** and **analyze** them. Batch pipeline, not a web app.
 
-- **Project / module / binary name:** `vmemo`
+- **Project / module / binary name:** `vtidy`
 - **Status:** planning complete, not yet built
-- **Folder:** `vmemo` (renamed from `vocie-memo-handler`, fixing the "vocie" typo)
+- **Folder:** `vtidy` (renamed from `vocie-memo-handler`, fixing the "vocie" typo)
 - **Platform:** macOS (darwin), local-only, no cloud
 
 ---
@@ -27,7 +27,7 @@ wrap the same core later with no rework if browsing/search is ever wanted.
 Two kinds, both supported:
 - **Text files** — dropped into `inbox/` anytime. The original file *is* the raw;
   no duplicate raw copy is written.
-- **Clipboard / big blob** — via `vmemo add`: reads `pbpaste`, or splits
+- **Clipboard / big blob** — via `vtidy add`: reads `pbpaste`, or splits
   `inbox/_blob.txt` on `---` lines into separate items. For these,
   a `.raw.txt` **is** written (to preserve the original, since there's no source file).
 
@@ -104,11 +104,11 @@ An item is **"fast-done"** once mistral's 2 files exist, **"fully done"** after 
 
 | Command | Does |
 |---|---|
-| `vmemo tidy` | tidy stage only → `*.clean_<model>.md` |
-| `vmemo analyze` | analysis stage only → `*.analysis_<model>.md` (skips + warns if matching clean file missing) |
-| `vmemo run` | full pipeline: tidy → analyze, to done |
-| `vmemo watch` | live monitor (fsnotify + 30s safety sweep, debounced); full pipeline, mistral |
-| `vmemo add` | clipboard (`pbpaste`) / blob → raw items, then process |
+| `vtidy tidy` | tidy stage only → `*.clean_<model>.md` |
+| `vtidy analyze` | analysis stage only → `*.analysis_<model>.md` (skips + warns if matching clean file missing) |
+| `vtidy run` | full pipeline: tidy → analyze, to done |
+| `vtidy watch` | live monitor (fsnotify + 30s safety sweep, debounced); full pipeline, mistral |
+| `vtidy add` | clipboard (`pbpaste`) / blob → raw items, then process |
 
 **Shared flags:** `--models <list>` (default `mistral:7b`), `--inbox <path>`,
 `--out <path>`, `--stage`, `--sweep <duration>`, `--sep <string>`.
@@ -119,12 +119,12 @@ An item is **"fast-done"** once mistral's 2 files exist, **"fully done"** after 
 
 | Trigger | Command |
 |---|---|
-| Tidy only, on demand | `vmemo tidy` |
-| Analysis only, on demand | `vmemo analyze` |
-| Full run, on demand | `vmemo run` |
-| Live monitor | `vmemo watch` |
-| Frequent poll (optional) | `vmemo run` via launchd every ~10 min |
-| Nightly slow tier | `vmemo run --models phi4` via **launchd at 3:00am** |
+| Tidy only, on demand | `vtidy tidy` |
+| Analysis only, on demand | `vtidy analyze` |
+| Full run, on demand | `vtidy run` |
+| Live monitor | `vtidy watch` |
+| Frequent poll (optional) | `vtidy run` via launchd every ~10 min |
+| Nightly slow tier | `vtidy run --models phi4` via **launchd at 3:00am** |
 
 Scheduling via **launchd** (macOS-native, survives reboots/login); cron as fallback.
 Deliverable includes two `.plist` files: `watch`-at-login and phi4-at-3am.
@@ -134,7 +134,7 @@ Deliverable includes two `.plist` files: `watch`-at-login and phi4-at-3am.
 ## 8. Proposed layout
 
 ```
-vmemo/
+vtidy/
   inbox/                 # drop .txt anytime
   out/                   # the 4 (+raw) files per item
   prompts/
@@ -166,19 +166,19 @@ Prompts live as editable text files so behavior can be tuned without recompiling
 Ordered so every stage ends in something runnable, not internal scaffolding.
 
 **Stage 0 — Skeleton**
-`go mod init vmemo`, `main.go` command routing, `vmemo --help`.
+`go mod init vtidy`, `main.go` command routing, `vtidy --help`.
 ✅ See: binary builds, prints its command list.
 
 **Stage 1 — Ollama round-trip**
-`ollama.go` `Chat(model, system, user)`. Temporary `vmemo ask "..."` to prove it talks to `mistral:7b` on `localhost:11434`.
+`ollama.go` `Chat(model, system, user)`. Temporary `vtidy ask "..."` to prove it talks to `mistral:7b` on `localhost:11434`.
 ✅ See: type a question, get a model reply.
 
 **Stage 2 — Tidy (mistral, files only)** ← *first real value*
-`vmemo tidy`: `inbox/*.txt` → mistral → `<id>.clean_mistral7b.md`. Includes `slug.go`.
+`vtidy tidy`: `inbox/*.txt` → mistral → `<id>.clean_mistral7b.md`. Includes `slug.go`.
 ✅ See: drop a messy transcript, get a cleaned `.md`.
 
 **Stage 3 — Analyze + full run** ← *first milestone, stop & use it*
-`vmemo analyze` → `<id>.analysis_mistral7b.md`. `vmemo run` = tidy then analyze.
+`vtidy analyze` → `<id>.analysis_mistral7b.md`. `vtidy run` = tidy then analyze.
 ✅ See: one command turns a raw transcript into clean + analysis. Now usable.
 
 **Stage 4 — State machine hardening**
@@ -190,11 +190,11 @@ Ordered so every stage ends in something runnable, not internal scaffolding.
 ✅ See: two clean + two analysis files per item, diffable side by side.
 
 **Stage 6 — Clipboard / blob input**
-`vmemo add`: `pbpaste` + `inbox/_blob.txt` split on `---`, writes `.raw.txt`.
+`vtidy add`: `pbpaste` + `inbox/_blob.txt` split on `---`, writes `.raw.txt`.
 ✅ See: copy text, run `add`, it gets ingested + processed.
 
 **Stage 7 — Watcher (full auto)**
-`vmemo watch`: fsnotify + debounce + 30s sweep, fast tier.
+`vtidy watch`: fsnotify + debounce + 30s sweep, fast tier.
 ✅ See: leave it running, drop a file, output appears unprompted.
 
 **Stage 8 — Scheduling**
@@ -217,7 +217,7 @@ convenience and can be deferred.
 ## 11. Open decision (last item before build)
 
 **What should the nightly 3am phi4 job run?**
-- `vmemo run --models phi4` (full) — phi4 does its own tidy + analysis → complete compare pair. Slower.
-- `vmemo analyze --models phi4` (analyze-only) — phi4 only adds `analysis_phi4`, reusing mistral's clean text. Faster, no phi4 clean version.
+- `vtidy run --models phi4` (full) — phi4 does its own tidy + analysis → complete compare pair. Slower.
+- `vtidy analyze --models phi4` (analyze-only) — phi4 only adds `analysis_phi4`, reusing mistral's clean text. Faster, no phi4 clean version.
 
 _To be decided._
