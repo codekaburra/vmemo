@@ -13,16 +13,15 @@ Usage:
   vtidy <command> [flags]
 
 Commands:
-  tidy      Clean up transcripts  → <id>.clean_<model>.md
-  analyze   Analyze transcripts   → <id>.analysis_<model>.md
+  tidy      Clean up transcripts  → <stem>_clean_<model>.txt
+  analyze   Analyze transcripts   → <stem>_analysis_<model>.txt
   run       Full pipeline: tidy then analyze
-  watch     Live monitor inbox/ (fsnotify + 30s sweep)
-  add       Ingest from clipboard (pbpaste) or inbox/_blob.txt
+  watch     Live monitor (fsnotify + 30s sweep)
+  add       Ingest from clipboard (pbpaste) or blob file
 
 Flags (shared across commands):
-  --models   Comma-separated model list  (default "mistral:7b")
-  --inbox    Inbox directory             (default "inbox")
-  --out      Output directory            (default "out")
+  --models   Comma-separated model list  (default "mistral:7b,phi4")
+  --dir      Resources directory         (default "resources")
   --sweep    Watcher safety sweep interval (default "30s")
   --sep      Blob separator string       (default "---")
 
@@ -35,9 +34,8 @@ Examples:
 
 // shared flags
 var (
-	flagModels = flag.String("models", "mistral:7b", "comma-separated model list")
-	flagInbox  = flag.String("inbox", "inbox", "inbox directory")
-	flagOut    = flag.String("out", "out", "output directory")
+	flagModels = flag.String("models", "mistral:7b,phi4", "comma-separated model list")
+	flagDir    = flag.String("dir", "resources", "resources directory")
 	flagSweep  = flag.String("sweep", "30s", "watcher safety sweep interval")
 	flagSep    = flag.String("sep", "---", "blob separator")
 )
@@ -90,29 +88,29 @@ func parseModels(s string) []string {
 
 func cmdTidy() {
 	models := parseModels(*flagModels)
-	if err := tidy(*flagInbox, *flagOut, models); err != nil {
+	if err := tidy(*flagDir, models); err != nil {
 		fmt.Fprintf(os.Stderr, "tidy: %v\n", err)
 		os.Exit(1)
 	}
 }
 
 func cmdAnalyze() {
-	fmt.Printf("analyze  models=%s  inbox=%s  out=%s\n", *flagModels, *flagInbox, *flagOut)
+	fmt.Printf("analyze  models=%s  dir=%s\n", *flagModels, *flagDir)
 	fmt.Println("(not yet implemented — Stage 3)")
 }
 
 func cmdRun() {
-	fmt.Printf("run  models=%s  inbox=%s  out=%s\n", *flagModels, *flagInbox, *flagOut)
+	fmt.Printf("run  models=%s  dir=%s\n", *flagModels, *flagDir)
 	fmt.Println("(not yet implemented — Stage 3)")
 }
 
 func cmdWatch() {
-	fmt.Printf("watch  models=%s  inbox=%s  out=%s  sweep=%s\n", *flagModels, *flagInbox, *flagOut, *flagSweep)
+	fmt.Printf("watch  models=%s  dir=%s  sweep=%s\n", *flagModels, *flagDir, *flagSweep)
 	fmt.Println("(not yet implemented — Stage 7)")
 }
 
 func cmdAdd() {
-	fmt.Printf("add  models=%s  inbox=%s  out=%s  sep=%s\n", *flagModels, *flagInbox, *flagOut, *flagSep)
+	fmt.Printf("add  models=%s  dir=%s  sep=%s\n", *flagModels, *flagDir, *flagSep)
 	fmt.Println("(not yet implemented — Stage 6)")
 }
 
