@@ -1,5 +1,3 @@
 vtidy
-inbox/*.txt
-out/*.md
 .DS_Store
 /resources

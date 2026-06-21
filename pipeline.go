@@ -38,18 +38,38 @@ func writeAtomic(path, content string) error {
 	return os.Rename(tmpName, path)
 }
 
-func tidy(inboxDir, outDir string, models []string) error {
+// stemFromRaw extracts the base stem from a _raw.txt filename.
+// e.g. "grocery-idea_raw.txt" → "grocery-idea"
+func stemFromRaw(filename string) string {
+	return strings.TrimSuffix(filename, "_raw.txt")
+}
+
+func findRawFiles(dir string) ([]string, error) {
+	var files []string
+	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return nil
+		}
+		if !info.IsDir() && strings.HasSuffix(info.Name(), "_raw.txt") {
+			files = append(files, path)
+		}
+		return nil
+	})
+	return files, nil
+}
+
+func tidy(dir string, models []string) error {
 	prompt, err := loadPrompt("tidy")
 	if err != nil {
 		return err
 	}
 
-	files, err := filepath.Glob(filepath.Join(inboxDir, "*.txt"))
+	files, err := findRawFiles(dir)
 	if err != nil {
 		return err
 	}
 	if len(files) == 0 {
-		fmt.Println("no .txt files in", inboxDir)
+		fmt.Println("no *_raw.txt files in", dir)
 		return nil
 	}
 
@@ -65,10 +85,11 @@ func tidy(inboxDir, outDir string, models []string) error {
 			continue
 		}
 
-		id := makeID(filepath.Base(f))
+		stem := stemFromRaw(filepath.Base(f))
+		fileDir := filepath.Dir(f)
 
 		for _, model := range models {
-			outFile := filepath.Join(outDir, id+".clean_"+modelSlug(model)+".md")
+			outFile := filepath.Join(fileDir, stem+"_clean_"+modelSlug(model)+".txt")
 			if _, err := os.Stat(outFile); err == nil {
 				fmt.Printf("skip %s (exists)\n", outFile)
 				continue
