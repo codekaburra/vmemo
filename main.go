@@ -16,6 +16,8 @@ Commands:
   tidy      Clean up transcripts  → <stem>_clean_<model>.txt
   analyze   Analyze transcripts   → <stem>_analysis_<model>.txt
   run       Full pipeline: tidy then analyze
+  status    Show processing status of all transcripts
+  dashboard Start local web dashboard (default :8090)
   watch     Live monitor (fsnotify + 30s sweep)
   add       Ingest from clipboard (pbpaste) or blob file
 
@@ -36,6 +38,7 @@ Examples:
 var (
 	flagModels = flag.String("models", "mistral:7b,phi4", "comma-separated model list")
 	flagDir    = flag.String("dir", "resources", "resources directory")
+	flagPort   = flag.Int("port", 8090, "dashboard port")
 	flagSweep  = flag.String("sweep", "30s", "watcher safety sweep interval")
 	flagSep    = flag.String("sep", "---", "blob separator")
 )
@@ -62,6 +65,10 @@ func main() {
 		cmdAnalyze()
 	case "run":
 		cmdRun()
+	case "status":
+		cmdStatus()
+	case "dashboard":
+		cmdDashboard()
 	case "watch":
 		cmdWatch()
 	case "add":
@@ -90,6 +97,20 @@ func cmdTidy() {
 	models := parseModels(*flagModels)
 	if err := tidy(*flagDir, models); err != nil {
 		fmt.Fprintf(os.Stderr, "tidy: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func cmdStatus() {
+	if err := printStatus(*flagDir); err != nil {
+		fmt.Fprintf(os.Stderr, "status: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func cmdDashboard() {
+	if err := serveDashboard(*flagDir, *flagPort); err != nil {
+		fmt.Fprintf(os.Stderr, "dashboard: %v\n", err)
 		os.Exit(1)
 	}
 }
